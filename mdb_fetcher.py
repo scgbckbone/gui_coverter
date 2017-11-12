@@ -1,6 +1,12 @@
+import os
 import sys
 import pypyodbc
 from meza import io
+from contextlib import redirect_stdout
+
+
+here_path = os.path.abspath(__file__)
+here_path = os.sep.join(here_path.split(os.sep)[:-1])
 
 
 class InvalidInputError(Exception):
@@ -25,6 +31,44 @@ class DataGetter(object):
         if sys.platform == "win32" or sys.platform == "win64":
             return True
         return False
+
+    @staticmethod
+    def is_linux():
+        if sys.platform == "linux" or sys.platform == "linux2":
+            return True
+        return False
+
+    @classmethod
+    def show_tables_linux(cls, path):
+        with open(here_path + os.sep + "temp.txt", "a") as f:
+            with redirect_stdout(f):
+                try:
+                    x = list(io.read_mdb(path))
+                except TypeError as e:
+                    raise
+        with open(here_path + os.sep + "temp.txt", "a") as f:
+            x = f.readlines()
+            y = 0
+            return
+
+    @classmethod
+    def show_tables_win(cls, path):
+        tables = []
+        conn = pypyodbc.win_connect_mdb(path)
+        c = conn.cursor()
+        try:
+            table_objs = c.tables().fetchall()
+        except Exception as e:
+            # log something
+            pass
+        else:
+            for i in table_objs:
+                if i[3] == "TABLE":
+                    tables.append(i[2])
+            return tables
+        finally:
+            c.close()
+            conn.close()
 
     def choose_converter(self):
         if self.conversion_method == 0:
@@ -61,59 +105,69 @@ class DataGetter(object):
         for i in range(10):
             print(self.data[i])
 
+    def get_data_win(self):
+        conn = pypyodbc.win_connect_mdb(self.db_path)
+        c = conn.cursor()
+        try:
+            self.data = c.execute(self.create_query_string()).fetchall()
+            result = []
+            for d in self.data:
+                result.append((d[0], d[1]))
+        except Exception as e:
+            # log somthing here
+            raise
+        else:
+            self.result = result
+
+        finally:
+            c.close()
+            conn.close()
+
+    def get_data_linux(self):
+        try:
+            self.data = list(io.read_mdb(self.db_path, table=self.table))
+        except TypeError as e:
+            raise
+
+        result = []
+        for i in self.data:
+            if not self.columns:
+                raise InvalidInputError("Provide desired column names.")
+            intermediate_res = []
+            for column in self.columns:
+                try:
+                    if column == "identifikator":
+                        x = self.hex_to_dec(i[column])
+                    else:
+                        x = i[column]
+                    intermediate_res.append(x)
+                except KeyError:
+                    raise InvalidInputError("Columns don't match.")
+            result.append(intermediate_res)
+
+        self.result = result
+
     def run(self):
         if self.is_windows:
-            conn = pypyodbc.win_connect_mdb(self.db_path)
-            c = conn.cursor()
-            try:
-                self.data = c.execute(self.create_query_string()).fetchall()
-                result = []
-                for d in self.data:
-                    result.append((d[0], d[1]))
-            except Exception as e:
-                # log somthing here
-                raise
-            else:
-                self.result = result
-
-            finally:
-                c.close()
-                conn.close()
-
+            self.get_data_win()
         else:
-            try:
-                self.data = list(io.read_mdb(self.db_path, table=self.table))
-            except TypeError as e:
-                print(80*"=")
-                raise
+            self.get_data_linux()
 
-            result = []
-            for i in self.data:
-                if not self.columns:
-                    raise InvalidInputError("Provide desired column names.")
-                intermediate_res = []
-                for column in self.columns:
-                    try:
-                        if column == "identifikator":
-                            x = self.hex_to_dec(i[column])
-                        else:
-                            x = i[column]
-                        intermediate_res.append(x)
-                    except KeyError:
-                        raise InvalidInputError("Columns don't match.")
-                result.append(intermediate_res)
-
-            self.result = result
+    @classmethod
+    def show_tables(cls, path):
+        if cls.is_linux():
+            return cls.show_tables_linux(path)
+        else:
+            return cls.show_tables_win(path)
 
 
 if __name__ == "__main__":
 
-    o = DataGetter(
-        db_path="/home/scag/Desktop/agatova_7f_bes.mdb",
-        table_name="identifikatory",
-        col_names=["identifikator", "meno_majitela"],
-        col_indexes=[1, 2]
-    )
-    res = o.run()
-    x = 0
-    print("here i started to print")
+    # o = DataGetter(
+    #     db_path="/home/scag/Desktop/agatova_7f_bes.mdb",
+    #     table_name="identifikatory",
+    #     col_names=["identifikator", "meno_majitela"],
+    #     col_indexes=[1, 2]
+    # )
+
+    x = DataGetter.show_tables("/home/scag/Desktop/agatova_7f_bes.mdb")
