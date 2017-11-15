@@ -52,6 +52,18 @@ class DataGetter(object):
             return
 
     @classmethod
+    def show_columns_linux(cls, path, table):
+        column_str = next(io.read_mdb(path, table=table))
+        keys = list(column_str.keys())
+        column_str = "\n".join(
+            [
+                "{}\t\t{}".format(k, type(v))
+                for k, v in column_str.items()
+            ]
+        )
+        return column_str, keys
+
+    @classmethod
     def show_tables_win(cls, path):
         tables = []
         conn = pypyodbc.win_connect_mdb(path)
@@ -159,6 +171,13 @@ class DataGetter(object):
             return cls.show_tables_linux(path)
         else:
             return cls.show_tables_win(path)
+
+    @classmethod
+    def show_columns(cls, path, table):
+        if cls.is_linux():
+            return cls.show_columns_linux(path, table)
+        else:
+            return cls.show_columns_win(path, table)
 
 
 if __name__ == "__main__":

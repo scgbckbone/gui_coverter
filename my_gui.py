@@ -192,7 +192,11 @@ class App(tk.Frame):
         if not name:
             return
         self.infile = name
-        self.update_om_tables()
+
+        try:
+            self.update_om_tables()
+        except:
+            pass
 
         self.show("Chosen infile:")
         self.show("\t" + name)
@@ -302,11 +306,20 @@ class App(tk.Frame):
         pass
 
     def choose_table(self, event=None):
-        table = self.entry_table.get()
-        if not table:
+        input_table = self.entry_table.get()
+        if not input_table:
+            input_table = self.drop_var_table
+        if not input_table:
             return
-        if isinstance(table, str):
-            self.drop_var_table = table
+        if isinstance(input_table, str):
+            try:
+                display_str = self.update_om_columns(input_table)
+            except Exception as e:
+                self.show_error(e.args)
+            else:
+                self.show("TABLE SCHEME:\n")
+                self.show(display_str)
+            self.drop_var_table = input_table
             self.show("Chosen table:")
             self.show("\t" + self.drop_var_table)
 
@@ -326,6 +339,22 @@ class App(tk.Frame):
                 label=table_name,
                 command=lambda value=table_name: self.drop_var_table.set(value)
             )
+
+    def update_om_columns(self, table_name):
+        menu = self.column_options['menu']
+        show_str, new_choices = App.GETTER.show_columns(
+            path=self.infile,
+            table=table_name
+        )
+
+        self.drop_var_columns.set(new_choices[0])
+        menu.delete(0, 'end')
+        for column in new_choices:
+            menu.add_command(
+                label=column,
+                command=lambda value=column: self.drop_var_columns.set(value)
+            )
+        return show_str
 
     def on_exit(self):
         # log maybe
