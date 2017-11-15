@@ -82,6 +82,21 @@ class DataGetter(object):
             c.close()
             conn.close()
 
+    @classmethod
+    def show_columns_windows(self, path, table):
+        conn = pypyodbc.win_connect_mdb(path)
+        c = conn.cursor()
+        try:
+            column_obj = c.columns(table).fetchall()
+        except Exception as e:
+            # log something
+            pass
+        else:
+            return [column[3] for column in column_obj]
+        finally:
+            c.close()
+            conn.close()
+
     def choose_converter(self):
         if self.conversion_method == 0:
             return DataGetter.hex_to_dec
@@ -92,12 +107,13 @@ class DataGetter(object):
         if not self.columns and not self.indexes:
             raise InvalidInputError("Unsufficient arguments.")
 
-    def create_query_string(self):
-        if not self.columns:
+    @staticmethod
+    def create_query_string(table, columns=None):
+        if not columns:
             columns = "*"
         else:
-            columns = ",".join(self.columns) if len(self.columns) > 1 else self.columns[0]
-        query = "SELECT {} FROM {}".format(columns, self.table)
+            columns = ",".join(columns) if len(columns) > 1 else columns[0]
+        query = "SELECT {} FROM {}".format(columns, table)
         return query
 
     @staticmethod
@@ -182,11 +198,14 @@ class DataGetter(object):
 
 if __name__ == "__main__":
 
-    # o = DataGetter(
-    #     db_path="/home/scag/Desktop/agatova_7f_bes.mdb",
-    #     table_name="identifikatory",
-    #     col_names=["identifikator", "meno_majitela"],
-    #     col_indexes=[1, 2]
-    # )
+    o = DataGetter(
+         db_path="/home/scag/Desktop/agatova_7f_bes.mdb",
+         table_name="identifikatory",
+         col_names=["identifikator", "meno_majitela"],
+         col_indexes=[1, 2]
+    )
 
-    x = DataGetter.show_tables("/home/scag/Desktop/agatova_7f_bes.mdb")
+    print(o.show_columns_windows(
+        path="C:\\Users\\Betka\\Desktop\\agatova_7f_bes.mdb",
+        table="identifikatory"
+    ))

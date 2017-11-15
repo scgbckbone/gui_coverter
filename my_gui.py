@@ -56,11 +56,6 @@ class App(tk.Frame):
 
         self.entry_table = tk.Entry(self.top_table)
         self.entry_table.bind("<Return>", self.choose_table)
-        self.entry_table.bind(
-            "<Command-a>",
-            lambda e: self.entry_table.select_range(0, "end")
-        )
-        self.entry_table.bind("<Command-c>", self.clear)
         self.entry_table.focus()
         self.entry_table.pack(side="left", fill="x", expand=True)
 
@@ -81,12 +76,7 @@ class App(tk.Frame):
 
         self.entry_columns = tk.Entry(self.top_columns)
         self.entry_columns.bind("<Return>", self.choose_columns)
-        self.entry_columns.bind(
-            "<Command-a>",
-            lambda e: self.entry_columns.select_range(0, "end")
-        )
-        self.entry_columns.bind("<Command-c>", self.clear)
-        self.entry_columns.focus()
+
         self.entry_columns.pack(side="left", fill="x", expand=True)
 
         option_lst_columns = ["identifikator,meno_majitela", "unspecified"]
@@ -106,12 +96,6 @@ class App(tk.Frame):
 
         self.entry_indexes = tk.Entry(self.top_indexes)
         self.entry_indexes.bind("<Return>", self.choose_indexes)
-        self.entry_indexes.bind(
-            "<Command-a>",
-            lambda e: self.entry_indexes.select_range(0, "end")
-        )
-        self.entry_indexes.bind("<Command-c>", self.clear)
-        self.entry_indexes.focus()
         self.entry_indexes.pack(side="left", fill="x", expand=True)
 
         option_lst_indexes = ["1,2", "unspecified"]
@@ -142,22 +126,10 @@ class App(tk.Frame):
 
         self.entry_in = tk.Entry(self.bottom_in)
         self.entry_in.bind("<Return>", self.choose_file_prompt)
-        self.entry_in.bind(
-            "<Command-a>",
-            lambda e: self.entry_in.select_range(0, "end")
-        )
-        self.entry_in.bind("<Command-c>", self.clear)
-        self.entry_in.focus()
         self.entry_in.pack(side="left", fill="x", expand=True)
 
         self.entry_out = tk.Entry(self.bottom_out)
         self.entry_out.bind("<Return>", self.choose_file_prompt_out)
-        self.entry_out.bind(
-            "<Command-a>",
-            lambda e: self.entry_out.select_range(0, "end")
-        )
-        self.entry_out.bind("<Command-c>", self.clear)
-        self.entry_out.focus()
         self.entry_out.pack(side="left", fill="x", expand=True)
 
         self.executer_in = tk.Button(
