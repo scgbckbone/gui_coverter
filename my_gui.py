@@ -54,11 +54,6 @@ class App(tk.Frame):
         )
         self.prompt_table.pack(side="left", fill="x")
 
-        self.entry_table = tk.Entry(self.top_table)
-        self.entry_table.bind("<Return>", self.choose_table)
-        self.entry_table.focus()
-        self.entry_table.pack(side="left", fill="x", expand=True)
-
         option_lst_table = ["identifikatory", "unspecified"]
         self.drop_var_table = StringVar()
         self.drop_var_table.set(option_lst_table[0])
@@ -66,6 +61,11 @@ class App(tk.Frame):
             self.top_table, self.drop_var_table, *option_lst_table
         )
         self.table_options.pack(expand=True)
+
+        self.executer_table = tk.Button(
+            self.top_table, text="Select", command=self.choose_table
+        )
+        self.executer_table.pack(side="right", padx=5, pady=2)
         self.top_table.pack(fill="x")
         # ======================================================================
         self.top_columns = tk.Frame(self)
@@ -73,11 +73,6 @@ class App(tk.Frame):
             self.top_columns, text="Choose column names: "
         )
         self.prompt_columns.pack(side="left", fill="x")
-
-        self.entry_columns = tk.Entry(self.top_columns)
-        self.entry_columns.bind("<Return>", self.choose_columns)
-
-        self.entry_columns.pack(side="left", fill="x", expand=True)
 
         option_lst_columns = ["identifikator,meno_majitela", "unspecified"]
         self.drop_var_columns = StringVar()
@@ -93,10 +88,6 @@ class App(tk.Frame):
             self.top_indexes, text="Choose index position: "
         )
         self.prompt_indexes.pack(side="left", fill="x")
-
-        self.entry_indexes = tk.Entry(self.top_indexes)
-        self.entry_indexes.bind("<Return>", self.choose_indexes)
-        self.entry_indexes.pack(side="left", fill="x", expand=True)
 
         option_lst_indexes = ["1,2", "unspecified"]
         self.drop_var_indexes = StringVar()
@@ -120,17 +111,9 @@ class App(tk.Frame):
         self.prompt = tk.Label(self.bottom_in, text="Choose '.mdb' file: ")
         self.prompt.pack(side="left", fill="x")
 
-        self.bottom_out = tk.Frame(self)
-        self.prompt_out = tk.Label(self.bottom_out, text="Choose output file: ")
-        self.prompt_out.pack(side="left", fill="x")
-
         self.entry_in = tk.Entry(self.bottom_in)
         self.entry_in.bind("<Return>", self.choose_file_prompt)
         self.entry_in.pack(side="left", fill="x", expand=True)
-
-        self.entry_out = tk.Entry(self.bottom_out)
-        self.entry_out.bind("<Return>", self.choose_file_prompt_out)
-        self.entry_out.pack(side="left", fill="x", expand=True)
 
         self.executer_in = tk.Button(
             self.bottom_in, text="Select", command=self.choose_file
@@ -142,18 +125,7 @@ class App(tk.Frame):
         )
         self.clearer_in.pack(side="left", padx=5, pady=2)
 
-        self.executer_out = tk.Button(
-            self.bottom_out, text="Select", command=self.choose_out_file
-        )
-        self.executer_out.pack(side="left", padx=5, pady=2)
-
-        self.clearer_out = tk.Button(
-            self.bottom_out, text="Clear", command=self.clear_entry_out)
-        self.clearer_out.pack(side="left", padx=5, pady=2)
-
         # packing bottom frames
-
-        self.bottom_out.pack(side="bottom", fill="both")
         self.bottom_in.pack(side="bottom", fill="both")
 
     def choose_file(self):
@@ -173,16 +145,6 @@ class App(tk.Frame):
         self.show("Chosen infile:")
         self.show("\t" + name)
 
-    def choose_out_file(self):
-        name = asksaveasfilename(
-            filetypes=(("xls files", "*.xls"), ("all files", "*.*"))
-        )
-        if not name:
-            return
-        self.outfile = name
-        self.show("Outfile will be saved to:")
-        self.show("\t" + name)
-
     def choose_file_prompt(self, event=None):
         file_path = self.entry_in.get()
         if not file_path:
@@ -198,28 +160,6 @@ class App(tk.Frame):
             self.show_error("Provided path is a directory.")
         else:
             self.show_error("Incorrect file path.")
-
-    def choose_file_prompt_out(self, event=None):
-        file_path = self.entry_out.get()
-        if not file_path:
-            return
-        if os.path.isdir(file_path):
-            self.show_error("Provided path is a directory.")
-            return
-        path_list = file_path.split(os.sep)
-        f_name = path_list[-1].split(".")
-        if len(f_name) == 2:
-            if f_name[1] == "xls":
-                parent_dir = os.sep.join(path_list[:-1])
-                if os.path.isdir(parent_dir):
-                    self.outfile = file_path
-                    self.show("Outfile will be saved to:\n\t{}".format(file_path))
-                else:
-                    self.show_error("Incorrect file path.")
-            else:
-                self.show_error("Incorrect file extension. Use '.xls'")
-        else:
-            self.show_error("No file extension.")
 
     def show_error(self, message):
         """Inserts message into the Text wiget"""
@@ -240,10 +180,6 @@ class App(tk.Frame):
         """Clears the Entry command widget"""
         self.entry_in.delete(0, "end")
 
-    def clear_entry_out(self):
-        """Clears the Entry command widget"""
-        self.entry_out.delete(0, "end")
-
     def clear_text(self):
         """Clears the Text widget"""
         self.text.config(state="normal")
@@ -254,7 +190,6 @@ class App(tk.Frame):
         """Does not stop an eventual running process,
         but just clears the Text and Entry widgets."""
         self.clear_entry_in()
-        self.clear_entry_out()
         self.clear_text()
 
     def save_console_output(self):
@@ -278,22 +213,17 @@ class App(tk.Frame):
         pass
 
     def choose_table(self, event=None):
-        input_table = self.entry_table.get()
-        if not input_table:
-            input_table = self.drop_var_table
-        if not input_table:
-            return
-        if isinstance(input_table, str):
-            try:
-                display_str = self.update_om_columns(input_table)
-            except Exception as e:
-                self.show_error(e.args)
-            else:
-                self.show("TABLE SCHEME:\n")
-                self.show(display_str)
-            self.drop_var_table = input_table
-            self.show("Chosen table:")
-            self.show("\t" + self.drop_var_table)
+        self.table = self.drop_var_table.get()
+        try:
+            display_str = self.update_om_columns()
+        except Exception as e:
+            self.show_error(e.args)
+        else:
+            self.show("TABLE SCHEME:\n")
+            self.show(display_str)
+        self.drop_var_table.set(self.table)
+        self.show("Chosen table:")
+        self.show("\t" + self.drop_var_table)
 
     def show_whole_selection(self):
         self.show("Infile: {}".format(self.infile))
@@ -312,12 +242,19 @@ class App(tk.Frame):
                 command=lambda value=table_name: self.drop_var_table.set(value)
             )
 
-    def update_om_columns(self, table_name):
+    def update_om_columns(self):
         menu = self.column_options['menu']
-        show_str, new_choices = App.GETTER.show_columns(
-            path=self.infile,
-            table=table_name
-        )
+        try:
+            show_str, new_choices = App.GETTER.show_columns(
+                path=self.infile,
+                table=self.table
+            )
+        except ValueError:
+            new_choices = App.GETTER.show_columns(
+                path=self.infile,
+                table=self.table
+            )
+            show_str = "\n".join(new_choices)
 
         self.drop_var_columns.set(new_choices[0])
         menu.delete(0, 'end')
