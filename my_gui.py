@@ -13,7 +13,6 @@ class App(tk.Frame):
 
     def __init__(self, master, *args, **kwargs):
         self.infile = None
-        self.outfile = None
         self.table = None
 
         tk.Frame.__init__(self, master, *args, **kwargs)
@@ -70,11 +69,11 @@ class App(tk.Frame):
         # ======================================================================
         self.top_columns = tk.Frame(self)
         self.prompt_columns = tk.Label(
-            self.top_columns, text="Choose column names: "
+            self.top_columns, text="Choose column name with 'hex string': "
         )
         self.prompt_columns.pack(side="left", fill="x")
 
-        option_lst_columns = ["identifikator,meno_majitela", "unspecified"]
+        option_lst_columns = ["unspecified"]
         self.drop_var_columns = StringVar()
         self.drop_var_columns.set(option_lst_columns[0])
         self.column_options = OptionMenu(
@@ -85,17 +84,21 @@ class App(tk.Frame):
         # ======================================================================
         self.top_indexes = tk.Frame(self)
         self.prompt_indexes = tk.Label(
-            self.top_indexes, text="Choose index position: "
+            self.top_indexes, text="Choose column name with 'name': "
         )
         self.prompt_indexes.pack(side="left", fill="x")
 
-        option_lst_indexes = ["1,2", "unspecified"]
+        option_lst_indexes = ["unspecified"]
         self.drop_var_indexes = StringVar()
         self.drop_var_indexes.set(option_lst_indexes[0])
         self.index_option = OptionMenu(
             self.top_indexes, self.drop_var_indexes, *option_lst_indexes
         )
         self.index_option.pack(expand=True)
+
+        self.run_it = tk.Button(self.top_indexes, text="Do it", command=self.run_conversion)
+        self.run_it.pack(side="left", padx=5, pady=2)
+
         self.top_indexes.pack(fill="x")
         # ======================================================================
 
@@ -223,11 +226,10 @@ class App(tk.Frame):
             self.show(display_str)
         self.drop_var_table.set(self.table)
         self.show("Chosen table:")
-        self.show("\t" + self.drop_var_table)
+        self.show("\t" + self.drop_var_table.get())
 
     def show_whole_selection(self):
         self.show("Infile: {}".format(self.infile))
-        self.show("Outfile: {}".format(self.outfile))
         self.show("Table: {}".format(self.table))
 
     def update_om_tables(self):
@@ -243,7 +245,7 @@ class App(tk.Frame):
             )
 
     def update_om_columns(self):
-        menu = self.column_options['menu']
+        menu1, menu2 = self.column_options['menu'], self.index_option['menu']
         try:
             show_str, new_choices = App.GETTER.show_columns(
                 path=self.infile,
@@ -257,13 +259,43 @@ class App(tk.Frame):
             show_str = "\n".join(new_choices)
 
         self.drop_var_columns.set(new_choices[0])
-        menu.delete(0, 'end')
+        self.drop_var_indexes.set(new_choices[1])
+        menu1.delete(0, 'end')
+        menu2.delete(0, 'end')
         for column in new_choices:
-            menu.add_command(
+            menu1.add_command(
                 label=column,
                 command=lambda value=column: self.drop_var_columns.set(value)
             )
+
+            menu2.add_command(
+                label=column,
+                command=lambda value=column: self.drop_var_indexes.set(value)
+            )
         return show_str
+
+    def run_conversion(self):
+        obj = self.GETTER(
+            db_path=self.infile,
+            table_name=self.table,
+            hex_num=self.drop_var_columns.get(),
+            name=self.drop_var_indexes.get()
+        )
+        obj.run()
+
+        outfile = asksaveasfilename(
+            defaultextension='.xls',
+            filetypes=(("xls files", ".xls"), ("all files", "*.*"))
+        )
+
+        wrt = self.WRITER(outfile)
+        wrt.write(obj.result)
+
+        self.show("Chosen outfile:")
+        self.show("\t" + outfile)
+
+    def write_data(self):
+        pass
 
     def on_exit(self):
         # log maybe

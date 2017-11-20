@@ -14,13 +14,11 @@ class InvalidInputError(Exception):
 
 
 class DataGetter(object):
-    def __init__(self, db_path, table_name, col_names=None, col_indexes=None,
-                 conversion_method=0):
+    def __init__(self, db_path, table_name, hex_num, name, conversion_method=0):
         self.db_path = db_path
         self.table = table_name
-        self.columns = col_names
-        self.indexes = col_indexes
-        self.validate = self.validate_input()
+        self.column1 = hex_num
+        self.column2 = name
         self.conversion_method = conversion_method
         self.converter = self.choose_converter()
         self.data = None
@@ -32,6 +30,10 @@ class DataGetter(object):
             return True
         return False
 
+    @property
+    def columns(self):
+        return self.column1 + "," + self.column2
+
     @staticmethod
     def is_linux():
         if sys.platform == "linux" or sys.platform == "linux2":
@@ -40,16 +42,7 @@ class DataGetter(object):
 
     @classmethod
     def show_tables_linux(cls, path):
-        with open(here_path + os.sep + "temp.txt", "a") as f:
-            with redirect_stdout(f):
-                try:
-                    x = list(io.read_mdb(path))
-                except TypeError as e:
-                    raise
-        with open(here_path + os.sep + "temp.txt", "a") as f:
-            x = f.readlines()
-            y = 0
-            return
+        raise NotImplementedError("Not implemented.")
 
     @classmethod
     def show_columns_linux(cls, path, table):
@@ -83,7 +76,7 @@ class DataGetter(object):
             conn.close()
 
     @classmethod
-    def show_columns_win(self, path, table):
+    def show_columns_win(cls, path, table):
         conn = pypyodbc.win_connect_mdb(path)
         c = conn.cursor()
         try:
@@ -103,17 +96,8 @@ class DataGetter(object):
         elif self.conversion_method == 1:
             return DataGetter.hex_to_dec1
 
-    def validate_input(self):
-        if not self.columns and not self.indexes:
-            raise InvalidInputError("Unsufficient arguments.")
-
-    @staticmethod
-    def create_query_string(table, columns=None):
-        if not columns:
-            columns = "*"
-        else:
-            columns = ",".join(columns) if len(columns) > 1 else columns[0]
-        query = "SELECT {} FROM {}".format(columns, table)
+    def create_query_string(self):
+        query = "SELECT {} FROM {}".format(self.columns, self.table)
         return query
 
     @staticmethod
@@ -138,15 +122,11 @@ class DataGetter(object):
         c = conn.cursor()
         try:
             self.data = c.execute(self.create_query_string()).fetchall()
-            result = []
-            for d in self.data:
-                result.append((d[0], d[1]))
         except Exception as e:
             # log somthing here
             raise
         else:
-            self.result = result
-
+            self.result = [(self.converter(i[0]), i[1]) for i in self.data]
         finally:
             c.close()
             conn.close()
@@ -194,18 +174,3 @@ class DataGetter(object):
             return cls.show_columns_linux(path, table)
         else:
             return cls.show_columns_win(path, table)
-
-
-if __name__ == "__main__":
-
-    o = DataGetter(
-         db_path="/home/scag/Desktop/agatova_7f_bes.mdb",
-         table_name="identifikatory",
-         col_names=["identifikator", "meno_majitela"],
-         col_indexes=[1, 2]
-    )
-
-    print(o.show_columns_windows(
-        path="C:\\Users\\Betka\\Desktop\\agatova_7f_bes.mdb",
-        table="identifikatory"
-    ))
