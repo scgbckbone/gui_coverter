@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import Menu, OptionMenu, StringVar
+from tkinter import Menu, OptionMenu, StringVar, IntVar, Checkbutton
 from tkinter.scrolledtext import ScrolledText
 from tkinter.filedialog import askopenfilename, asksaveasfilename, asksaveasfile
 from mdb_fetcher import DataGetter
@@ -35,16 +35,12 @@ class App(tk.Frame):
         # ======================================================================
         self.top_method = tk.Frame(self)
         self.prompt_method = tk.Label(
-            self.top_method, text="Choose conversion method: "
+            self.top_method, text="Conversion method: "
         )
         self.prompt_method.pack(side="left", fill="x")
-        option_lst_method = ["method1", "method2"]
-        self.drop_var_method = StringVar()
-        self.drop_var_method.set(option_lst_method[0])
-        self.method_options = OptionMenu(
-            self.top_method, self.drop_var_method, *option_lst_method
-        )
-        self.method_options.pack(expand=True)
+        self.method_option = IntVar()
+        self.method_check_box = Checkbutton(self.top_method, text="MyFair", variable=self.method_option)
+        self.method_check_box.pack(expand=True)
         self.top_method.pack(fill="x")
         # ======================================================================
         self.top_table = tk.Frame(self)
@@ -59,13 +55,13 @@ class App(tk.Frame):
         self.table_options = OptionMenu(
             self.top_table, self.drop_var_table, *option_lst_table
         )
-        self.table_options.pack(expand=True)
+        self.table_options.pack(side="left", expand=1)
 
         self.executer_table = tk.Button(
             self.top_table, text="Select", command=self.choose_table
         )
-        self.executer_table.pack(side="right", padx=5, pady=2)
-        self.top_table.pack(fill="x")
+        self.executer_table.pack(side="left", padx=5, pady=2)
+        self.top_table.pack(fill="both")
         # ======================================================================
         self.top_columns = tk.Frame(self)
         self.prompt_columns = tk.Label(
@@ -96,9 +92,6 @@ class App(tk.Frame):
         )
         self.index_option.pack(expand=True)
 
-        self.run_it = tk.Button(self.top_indexes, text="Do it", command=self.run_conversion)
-        self.run_it.pack(side="left", padx=5, pady=2)
-
         self.top_indexes.pack(fill="x")
         # ======================================================================
 
@@ -123,10 +116,10 @@ class App(tk.Frame):
         )
         self.executer_in.pack(side="left", padx=5, pady=2)
 
-        self.clearer_in = tk.Button(
-            self.bottom_in, text="Clear", command=self.clear_entry_in
+        self.do_it = tk.Button(
+            self.bottom_in, text="RUN", bg="green", command=self.run_conversion
         )
-        self.clearer_in.pack(side="left", padx=5, pady=2)
+        self.do_it.pack(side="left", padx=5, pady=2)
 
         # packing bottom frames
         self.bottom_in.pack(side="bottom", fill="both")
@@ -146,7 +139,7 @@ class App(tk.Frame):
             pass
 
         self.show("Chosen infile:")
-        self.show("\t" + name)
+        self.show("\t" + name + "\n")
 
     def choose_file_prompt(self, event=None):
         file_path = self.entry_in.get()
@@ -222,8 +215,9 @@ class App(tk.Frame):
         except Exception as e:
             self.show_error(e.args)
         else:
-            self.show("TABLE SCHEME:\n")
-            self.show(display_str)
+            self.show("TABLE SCHEME:")
+            self.show(display_str + "\n")
+
         self.drop_var_table.set(self.table)
         self.show("Chosen table:")
         self.show("\t" + self.drop_var_table.get())
@@ -256,7 +250,7 @@ class App(tk.Frame):
                 path=self.infile,
                 table=self.table
             )
-            show_str = "\n".join(new_choices)
+            show_str = "\n".join(["\t" + i for i in new_choices])
 
         self.drop_var_columns.set(new_choices[0])
         self.drop_var_indexes.set(new_choices[1])
@@ -291,7 +285,7 @@ class App(tk.Frame):
         wrt = self.WRITER(outfile)
         wrt.write(obj.result)
 
-        self.show("Chosen outfile:")
+        self.show("\nChosen outfile:")
         self.show("\t" + outfile)
 
     def write_data(self):
