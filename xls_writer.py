@@ -7,7 +7,7 @@ class XLSWriter(object):
                'Začiatok platnosti', 'Koniec platnosti', 'Department']
     start = 1
 
-    def __init__(self, out_file, start_date="2017-11-1", end_date="2017-11-1",
+    def __init__(self, out_file, start_date="2017-11-1", end_date="2099-12-1",
                  sheet_name="ExcelData"):
         self.out_file = out_file
         self.start_date = start_date
