@@ -1,4 +1,5 @@
 import os
+import traceback
 import tkinter as tk
 from tkinter import Menu, OptionMenu, StringVar, IntVar, Checkbutton
 from tkinter.scrolledtext import ScrolledText
@@ -135,8 +136,8 @@ class App(tk.Frame):
 
         try:
             self.update_om_tables()
-        except:
-            pass
+        except Exception:
+            self.show_error(traceback.format_exc())
 
         self.show("Chosen infile:")
         self.show("\t" + name + "\n")
@@ -195,8 +196,8 @@ class App(tk.Frame):
         )
         try:
             file_.write(log)
-        except Exception as e:
-            self.show_error("Failed to save log. {}".format(e.args))
+        except Exception:
+            self.show_error(traceback.format_exc())
         else:
             self.show("Log saved to {}".format(file_.name))
         finally:
@@ -212,8 +213,8 @@ class App(tk.Frame):
         self.table = self.drop_var_table.get()
         try:
             display_str = self.update_om_columns()
-        except Exception as e:
-            self.show_error(e.args)
+        except Exception:
+            self.show_error(traceback.format_exc())
         else:
             self.show("TABLE SCHEME:")
             self.show(display_str + "\n")
@@ -251,6 +252,9 @@ class App(tk.Frame):
                 table=self.table
             )
             show_str = "\n".join(["\t" + i for i in new_choices])
+
+        except Exception:
+            self.show_error(traceback.format_exc())
 
         self.drop_var_columns.set(new_choices[0])
         self.drop_var_indexes.set(new_choices[1])

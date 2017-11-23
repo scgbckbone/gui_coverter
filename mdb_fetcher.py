@@ -2,7 +2,7 @@ import os
 import sys
 import pypyodbc
 from meza import io
-from contextlib import redirect_stdout
+import subprocess
 
 
 here_path = os.path.abspath(__file__)
@@ -42,7 +42,8 @@ class DataGetter(object):
 
     @classmethod
     def show_tables_linux(cls, path):
-        raise NotImplementedError("Not implemented.")
+        tables = subprocess.check_output(["mdb-tables", path])
+        return tables.decode().split()
 
     @classmethod
     def show_columns_linux(cls, path, table):
@@ -50,8 +51,7 @@ class DataGetter(object):
         keys = list(column_str.keys())
         column_str = "\n".join(
             [
-                "{}\t\t{}".format(k, type(v))
-                for k, v in column_str.items()
+                "\t{}".format(k)for k in column_str
             ]
         )
         return column_str, keys
@@ -138,20 +138,8 @@ class DataGetter(object):
             raise
 
         result = []
-        for i in self.data:
-            if not self.columns:
-                raise InvalidInputError("Provide desired column names.")
-            intermediate_res = []
-            for column in self.columns:
-                try:
-                    if column == "identifikator":
-                        x = self.hex_to_dec(i[column])
-                    else:
-                        x = i[column]
-                    intermediate_res.append(x)
-                except KeyError:
-                    raise InvalidInputError("Columns don't match.")
-            result.append(intermediate_res)
+        for obj in self.data:
+            result.append((self.converter(obj[self.column1]), obj[self.column2]))
 
         self.result = result
 
