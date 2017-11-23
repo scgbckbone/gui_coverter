@@ -83,7 +83,7 @@ class DataGetter(object):
             conn.close()
 
     @classmethod
-    def show_columns_win(self, path, table):
+    def show_columns_win(cls, path, table):
         conn = pypyodbc.win_connect_mdb(path)
         c = conn.cursor()
         try:
