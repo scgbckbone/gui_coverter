@@ -1,4 +1,5 @@
 import os
+import datetime
 import traceback
 import tkinter as tk
 from tkinter import Menu, OptionMenu, StringVar, IntVar, Checkbutton
@@ -12,14 +13,15 @@ class App(tk.Frame):
     GETTER = DataGetter
     WRITER = XLSWriter
 
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, root, *args, **kwargs):
+        self.master = root
         self.infile = None
         self.table = None
 
-        tk.Frame.__init__(self, master, *args, **kwargs)
+        tk.Frame.__init__(self, self.master, *args, **kwargs)
 
-        self.menu = Menu(master)
-        master.config(menu=self.menu)
+        self.menu = Menu(self.master)
+        self.master.config(menu=self.menu)
 
         self.settings = Menu(self.menu)
         self.menu.add_cascade(label="Settings", menu=self.settings)
@@ -255,6 +257,7 @@ class App(tk.Frame):
 
         except Exception:
             self.show_error(traceback.format_exc())
+            return
 
         self.drop_var_columns.set(new_choices[0])
         self.drop_var_indexes.set(new_choices[1])
@@ -277,7 +280,8 @@ class App(tk.Frame):
             db_path=self.infile,
             table_name=self.table,
             hex_num=self.drop_var_columns.get(),
-            name=self.drop_var_indexes.get()
+            name=self.drop_var_indexes.get(),
+            conversion_method=self.method_option.get(),
         )
         obj.run()
 
@@ -292,16 +296,9 @@ class App(tk.Frame):
         self.show("\nChosen outfile:")
         self.show("\t" + outfile)
 
-    def write_data(self):
-        pass
-
     def on_exit(self):
-        # log maybe
+        now = str(datetime.datetime.now())
+        self.show("\n" + now + "\n\t\t\t\t\t\t" + "bye")
         self.quit()
 
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Console")
-    App(root).pack(expand=True, fill="both")
-    root.mainloop()
