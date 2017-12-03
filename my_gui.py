@@ -38,17 +38,17 @@ class App(tk.Frame):
         # ======================================================================
         self.top_method = tk.Frame(self)
         self.prompt_method = tk.Label(
-            self.top_method, text="Conversion method: "
+            self.top_method, text="Conversion method( metoda prevodu ): "
         )
         self.prompt_method.pack(side="left", fill="x")
         self.method_option = IntVar()
-        self.method_check_box = Checkbutton(self.top_method, text="MyFair", variable=self.method_option)
+        self.method_check_box = Checkbutton(self.top_method, text="MIFARE", variable=self.method_option)
         self.method_check_box.pack(expand=True)
         self.top_method.pack(fill="x")
         # ======================================================================
         self.top_table = tk.Frame(self)
         self.prompt_table = tk.Label(
-            self.top_table, text="Choose table name: "
+            self.top_table, text="Choose table name( zvol tabulku ): "
         )
         self.prompt_table.pack(side="left", fill="x")
 
@@ -68,7 +68,7 @@ class App(tk.Frame):
         # ======================================================================
         self.top_columns = tk.Frame(self)
         self.prompt_columns = tk.Label(
-            self.top_columns, text="Choose column name with 'hex string': "
+            self.top_columns, text="Choose column name with 'hex string'( identifikator ): "
         )
         self.prompt_columns.pack(side="left", fill="x")
 
@@ -83,7 +83,7 @@ class App(tk.Frame):
         # ======================================================================
         self.top_indexes = tk.Frame(self)
         self.prompt_indexes = tk.Label(
-            self.top_indexes, text="Choose column name with 'name': "
+            self.top_indexes, text="Choose column name with 'name'( meno majitela ): "
         )
         self.prompt_indexes.pack(side="left", fill="x")
 
@@ -107,7 +107,7 @@ class App(tk.Frame):
         self.menu.add_cascade(label="HELP", menu=self.help)
 
         self.bottom_in = tk.Frame(self)
-        self.prompt = tk.Label(self.bottom_in, text="Choose '.mdb' file: ")
+        self.prompt = tk.Label(self.bottom_in, text="Choose '.mdb' file:( .mdb subor ) ")
         self.prompt.pack(side="left", fill="x")
 
         self.entry_in = tk.Entry(self.bottom_in)
